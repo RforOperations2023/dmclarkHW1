@@ -19,9 +19,12 @@ ui <- fluidPage(
   sidebarLayout(
     sidebarPanel(
       
-      selectInput("race", "Select a Race:",
-                  choices = unique(US_Police_shootings_15_22$race)),
+      selectInput("selectRace", "Select Race:",
+                  choices = US_Police_shootings_15_22$race),
       
+      # create a drop-down menu for the variable
+      selectInput("variable", "Select a variable:", 
+                  choices = colnames(US_Police_shootings_15_22)),
       
       # create a numeric input for the threshold value
       numericInput("threshold", "Enter threshold value:", 
@@ -49,34 +52,39 @@ ui <- fluidPage(
         # create a tab for the data table
         tabPanel("Data Table", DT::dataTableOutput("dataTable"))
         
-        
+        #######dlfkdpmadfmadpkbmadpbmadpbmaepbmaepbmape`rmra`
       )
     )
   )
 )
 
-
 server <- function(input, output) {
+  
+  
+  # create a reactive expression to update the histogram
+  selectedRace <- reactive({
+    if (input$selectRace > 0) {
+      input$variable <- "race"
+    }
+    input$variable
+  })
+  
   
   output$violinPlot <- renderPlot({
     ggplot(US_Police_shootings_15_22, aes_string(x = "race", y = 'age', fill = 'race')) +
-      geom_violin() +
-      ggtitle('Age comparisons across races')
+      geom_violin()
     
   })
   
   # create the bar plot
   output$barPlot <- renderPlot({
-    ggplot(US_Police_shootings_15_22, aes_string(x = 'race', fill = "race")) +
-      geom_bar(position = "dodge") +
-      ggtitle('Fatal shooting by police across races ')
+    ggplot(US_Police_shootings_15_22, aes_string(x = 'input$variable', fill = "race")) +
+      geom_bar(position = "dodge")
   })
   
   #create the Histogram
   output$histogram <- renderPlot({
-    ggplot(US_Police_shootings_15_22,
-           aes_string(x = 'date', y = input$variable)) +
-      geom_histogram(stat = 'count')
+    ggplot(US_Police_shootings_15_22, aes_string(x = 'date', y = selectRace()))
   })
   
   # create the data table
