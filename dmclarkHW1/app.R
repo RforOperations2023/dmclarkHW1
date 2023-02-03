@@ -2,12 +2,13 @@
 library(shiny)
 library(ggplot2)
 library(DT)
+library(dplyr)
 
 
 
 #Importing my data
 
-US_Police_shootings_15_22 <- read.csv("~/dmclark/dmclark_hw1/US Police shootings in from 2015-22_alt.csv")
+US_Police_shootings_15_22 <- read.csv("~/dmclarkHW1/dmclarkHW1/US Police shootings in from 2015-22_alt_race.csv")
 
 # create a basic shiny app
 ui <- fluidPage(
@@ -19,7 +20,8 @@ ui <- fluidPage(
   sidebarLayout(
     sidebarPanel(
       
-      selectInput("race", "Select a Race:",
+      #create a drop down selection for the race tied to the histogram
+      selectInput("race_dropdown", "Select a Race for the Histogram:",
                   choices = unique(US_Police_shootings_15_22$race)),
       
       
@@ -58,6 +60,11 @@ ui <- fluidPage(
 
 server <- function(input, output) {
   
+  shootings_by_date_race <- US_Police_shootings_15_22 %>% 
+    group_by(date, race) %>% 
+    summarise(count = n())
+  
+  
   output$violinPlot <- renderPlot({
     ggplot(US_Police_shootings_15_22, aes_string(x = "race", y = 'age', fill = 'race')) +
       geom_violin() +
@@ -72,11 +79,13 @@ server <- function(input, output) {
       ggtitle('Fatal shooting by police across races ')
   })
   
+  
   #create the Histogram
   output$histogram <- renderPlot({
-    ggplot(US_Police_shootings_15_22,
-           aes_string(x = 'date', y = input$variable)) +
-      geom_histogram(stat = 'count')
+    ggplot(shootings_by_date_race,
+           aes(x = 'date', y = input$race_dropdown, ylab="Your Selected Race"))+
+    geom_histogram(binwidth = 30)
+      
   })
   
   # create the data table
