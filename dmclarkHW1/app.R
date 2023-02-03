@@ -10,6 +10,12 @@ library(dplyr)
 
 US_Police_shootings_15_22 <- read.csv("~/dmclarkHW1/dmclarkHW1/US Police shootings in from 2015-22_alt_race.csv")
 
+shootings_by_date_race <- US_Police_shootings_15_22 %>%
+  group_by(date, race) %>%
+  summarise(count = n())
+
+dates <- as.Date(shootings_by_date_race$date, format = '%m/%d/%Y')
+
 # create a basic shiny app
 ui <- fluidPage(
   
@@ -45,8 +51,9 @@ ui <- fluidPage(
         # create a tab for the bar plot
         tabPanel("Bar Plot", plotOutput("barPlot")),
         
-        # create a tab for the histogram plot
-        tabPanel("Histogram", plotOutput("histogram")),
+        # create a tab for the click plot
+        tabPanel("Click Plot", plotOutput("clickPlot", click = "plot_click"),
+                 verbatimTextOutput("info")),
         
         # create a tab for the data table
         tabPanel("Data Table", DT::dataTableOutput("dataTable"))
@@ -60,11 +67,9 @@ ui <- fluidPage(
 
 server <- function(input, output) {
   
-  shootings_by_date_race <- US_Police_shootings_15_22 %>% 
-    group_by(date, race) %>% 
-    summarise(count = n())
   
   
+  # create the violin plot
   output$violinPlot <- renderPlot({
     ggplot(US_Police_shootings_15_22, aes_string(x = "race", y = 'age', fill = 'race')) +
       geom_violin() +
@@ -80,12 +85,18 @@ server <- function(input, output) {
   })
   
   
-  #create the Histogram
-  output$histogram <- renderPlot({
-    ggplot(shootings_by_date_race,
-           aes(x = 'date', y = input$race_dropdown, ylab="Your Selected Race"))+
-    geom_histogram(binwidth = 30)
+  #create the Click plot
+  output$clickPlot <- renderPlot({
+    plot(US_Police_shootings_in_from_2015_22_alt_race$age, US_Police_shootings_in_from_2015_22_alt_race$id, xlab = 'Victims ID', 
+         ylab = 'Victims Age at Death', color='race')
+    
       
+  })
+  
+  #Determining the output of the click
+
+  output$info <- renderText({
+    paste0("Age of the point clicked: ",input$plot_click$x, "\nID number of the point clicked= ", input$plot_click$y)
   })
   
   # create the data table
