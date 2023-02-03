@@ -3,6 +3,8 @@ library(shiny)
 library(ggplot2)
 library(DT)
 
+
+
 #Importing my data
 
 US_Police_shootings_15_22 <- read.csv("~/dmclark/dmclark_hw1/US Police shootings in from 2015-22_alt.csv")
@@ -16,6 +18,9 @@ ui <- fluidPage(
   # add a side panel for the inputs
   sidebarLayout(
     sidebarPanel(
+      
+      selectInput("selectRace", "Select Race:",
+                  choices = US_Police_shootings_15_22$race),
       
       # create a drop-down menu for the variable
       selectInput("variable", "Select a variable:", 
@@ -36,7 +41,7 @@ ui <- fluidPage(
       tabsetPanel(
         
         # create a tab for the line plot
-        tabPanel("Line Plot", plotOutput("linePlot")),
+        tabPanel("Violin Plot", plotOutput("violinPlot")),
         
         # create a tab for the bar plot
         tabPanel("Bar Plot", plotOutput("barPlot")),
@@ -56,21 +61,30 @@ ui <- fluidPage(
 server <- function(input, output) {
   
   
-  output$linePlot <- renderPlot({
-    ggplot(US_Police_shootings_15_22, aes_string(x = "id" , y = input$variable)) +
-      geom_line()
+  # create a reactive expression to update the histogram
+  selectedRace <- reactive({
+    if (input$selectRace > 0) {
+      input$variable <- "race"
+    }
+    input$variable
+  })
+  
+  
+  output$violinPlot <- renderPlot({
+    ggplot(US_Police_shootings_15_22, aes_string(x = "race", y = 'age', fill = 'race')) +
+      geom_violin()
     
   })
   
   # create the bar plot
   output$barPlot <- renderPlot({
-    ggplot(US_Police_shootings_15_22, aes_string(x = input$variable, fill = "race")) +
+    ggplot(US_Police_shootings_15_22, aes_string(x = 'input$variable', fill = "race")) +
       geom_bar(position = "dodge")
   })
   
   #create the Histogram
   output$histogram <- renderPlot({
-    ggplot(US_Police_shootings_15_22, aes_string( x = 'date', y = input$variable ))
+    ggplot(US_Police_shootings_15_22, aes_string(x = 'date', y = selectRace()))
   })
   
   # create the data table
