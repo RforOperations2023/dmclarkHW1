@@ -3,6 +3,8 @@ library(shiny)
 library(ggplot2)
 library(DT)
 library(dplyr)
+library(rsconnect)
+#rsconnect::deployApp('C:\Users\david\OneDrive\Documents\dmclarkHW1\dmclarkHW1')
 
 
 
@@ -26,14 +28,10 @@ ui <- fluidPage(
   sidebarLayout(
     sidebarPanel(
       
-      #create a drop down selection for the race tied to the histogram
-      selectInput("race_dropdown", "Select a Race for the Histogram:",
-                  choices = unique(US_Police_shootings_15_22$race)),
-      
       
       # create a numeric input for the threshold value
       numericInput("threshold", "Enter threshold value:", 
-                   min = 0, max = 100, value = 50),
+                   min = 0, max = 7629, value = 50),
       
       # create a download button
       downloadButton("downloadData", "Download Data")
@@ -96,12 +94,12 @@ server <- function(input, output) {
   #Determining the output of the click
 
   output$info <- renderText({
-    paste0("Age of the point clicked: ",input$plot_click$x, "\nID number of the point clicked= ", input$plot_click$y)
+    paste0("Age at the time of death: ",input$plot_click$x, "\nID number of the deceased: ", input$plot_click$y)
   })
   
   # create the data table
   output$dataTable <- DT::renderDataTable({
-    DT::datatable(subset(US_Police_shootings_15_22, US_Police_shootings_15_22$race > input$threshold))
+    DT::datatable(subset(US_Police_shootings_15_22, US_Police_shootings_15_22$id < input$threshold))
   })
   
   # create the download handler
